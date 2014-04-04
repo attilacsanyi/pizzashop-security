@@ -7,6 +7,7 @@ import com.springsource.roo.pizzashop.domain.Base;
 import com.springsource.roo.pizzashop.domain.BaseDataOnDemand;
 import com.springsource.roo.pizzashop.domain.Pizza;
 import com.springsource.roo.pizzashop.domain.PizzaDataOnDemand;
+import com.springsource.roo.pizzashop.service.PizzaService;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,6 +28,9 @@ privileged aspect PizzaDataOnDemand_Roo_DataOnDemand {
     
     @Autowired
     private BaseDataOnDemand PizzaDataOnDemand.baseDataOnDemand;
+    
+    @Autowired
+    PizzaService PizzaDataOnDemand.pizzaService;
     
     public Pizza PizzaDataOnDemand.getNewTransientPizza(int index) {
         Pizza obj = new Pizza();
@@ -61,14 +65,14 @@ privileged aspect PizzaDataOnDemand_Roo_DataOnDemand {
         }
         Pizza obj = data.get(index);
         Long id = obj.getId();
-        return Pizza.findPizza(id);
+        return pizzaService.findPizza(id);
     }
     
     public Pizza PizzaDataOnDemand.getRandomPizza() {
         init();
         Pizza obj = data.get(rnd.nextInt(data.size()));
         Long id = obj.getId();
-        return Pizza.findPizza(id);
+        return pizzaService.findPizza(id);
     }
     
     public boolean PizzaDataOnDemand.modifyPizza(Pizza obj) {
@@ -78,7 +82,7 @@ privileged aspect PizzaDataOnDemand_Roo_DataOnDemand {
     public void PizzaDataOnDemand.init() {
         int from = 0;
         int to = 10;
-        data = Pizza.findPizzaEntries(from, to);
+        data = pizzaService.findPizzaEntries(from, to);
         if (data == null) {
             throw new IllegalStateException("Find entries implementation for 'Pizza' illegally returned null");
         }
@@ -90,7 +94,7 @@ privileged aspect PizzaDataOnDemand_Roo_DataOnDemand {
         for (int i = 0; i < 10; i++) {
             Pizza obj = getNewTransientPizza(i);
             try {
-                obj.persist();
+                pizzaService.savePizza(obj);
             } catch (ConstraintViolationException e) {
                 StringBuilder msg = new StringBuilder();
                 for (Iterator<ConstraintViolation<?>> iter = e.getConstraintViolations().iterator(); iter.hasNext();) {

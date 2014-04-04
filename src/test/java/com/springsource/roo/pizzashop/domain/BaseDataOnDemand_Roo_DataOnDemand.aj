@@ -5,6 +5,7 @@ package com.springsource.roo.pizzashop.domain;
 
 import com.springsource.roo.pizzashop.domain.Base;
 import com.springsource.roo.pizzashop.domain.BaseDataOnDemand;
+import com.springsource.roo.pizzashop.service.BaseService;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Random;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 privileged aspect BaseDataOnDemand_Roo_DataOnDemand {
@@ -21,6 +23,9 @@ privileged aspect BaseDataOnDemand_Roo_DataOnDemand {
     private Random BaseDataOnDemand.rnd = new SecureRandom();
     
     private List<Base> BaseDataOnDemand.data;
+    
+    @Autowired
+    BaseService BaseDataOnDemand.baseService;
     
     public Base BaseDataOnDemand.getNewTransientBase(int index) {
         Base obj = new Base();
@@ -43,14 +48,14 @@ privileged aspect BaseDataOnDemand_Roo_DataOnDemand {
         }
         Base obj = data.get(index);
         Long id = obj.getId();
-        return Base.findBase(id);
+        return baseService.findBase(id);
     }
     
     public Base BaseDataOnDemand.getRandomBase() {
         init();
         Base obj = data.get(rnd.nextInt(data.size()));
         Long id = obj.getId();
-        return Base.findBase(id);
+        return baseService.findBase(id);
     }
     
     public boolean BaseDataOnDemand.modifyBase(Base obj) {
@@ -60,7 +65,7 @@ privileged aspect BaseDataOnDemand_Roo_DataOnDemand {
     public void BaseDataOnDemand.init() {
         int from = 0;
         int to = 10;
-        data = Base.findBaseEntries(from, to);
+        data = baseService.findBaseEntries(from, to);
         if (data == null) {
             throw new IllegalStateException("Find entries implementation for 'Base' illegally returned null");
         }
@@ -72,7 +77,7 @@ privileged aspect BaseDataOnDemand_Roo_DataOnDemand {
         for (int i = 0; i < 10; i++) {
             Base obj = getNewTransientBase(i);
             try {
-                obj.persist();
+                baseService.saveBase(obj);
             } catch (ConstraintViolationException e) {
                 StringBuilder msg = new StringBuilder();
                 for (Iterator<ConstraintViolation<?>> iter = e.getConstraintViolations().iterator(); iter.hasNext();) {

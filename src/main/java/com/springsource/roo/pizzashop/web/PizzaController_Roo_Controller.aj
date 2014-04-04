@@ -3,13 +3,15 @@
 
 package com.springsource.roo.pizzashop.web;
 
-import com.springsource.roo.pizzashop.domain.Base;
 import com.springsource.roo.pizzashop.domain.Pizza;
-import com.springsource.roo.pizzashop.domain.Topping;
+import com.springsource.roo.pizzashop.service.BaseService;
+import com.springsource.roo.pizzashop.service.PizzaService;
+import com.springsource.roo.pizzashop.service.ToppingService;
 import com.springsource.roo.pizzashop.web.PizzaController;
 import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +23,15 @@ import org.springframework.web.util.WebUtils;
 
 privileged aspect PizzaController_Roo_Controller {
     
+    @Autowired
+    PizzaService PizzaController.pizzaService;
+    
+    @Autowired
+    BaseService PizzaController.baseService;
+    
+    @Autowired
+    ToppingService PizzaController.toppingService;
+    
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     public String PizzaController.create(@Valid Pizza pizza, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
@@ -28,7 +39,7 @@ privileged aspect PizzaController_Roo_Controller {
             return "pizzas/create";
         }
         uiModel.asMap().clear();
-        pizza.persist();
+        pizzaService.savePizza(pizza);
         return "redirect:/pizzas/" + encodeUrlPathSegment(pizza.getId().toString(), httpServletRequest);
     }
     
@@ -40,7 +51,7 @@ privileged aspect PizzaController_Roo_Controller {
     
     @RequestMapping(value = "/{id}", produces = "text/html")
     public String PizzaController.show(@PathVariable("id") Long id, Model uiModel) {
-        uiModel.addAttribute("pizza", Pizza.findPizza(id));
+        uiModel.addAttribute("pizza", pizzaService.findPizza(id));
         uiModel.addAttribute("itemId", id);
         return "pizzas/show";
     }
@@ -50,11 +61,11 @@ privileged aspect PizzaController_Roo_Controller {
         if (page != null || size != null) {
             int sizeNo = size == null ? 10 : size.intValue();
             final int firstResult = page == null ? 0 : (page.intValue() - 1) * sizeNo;
-            uiModel.addAttribute("pizzas", Pizza.findPizzaEntries(firstResult, sizeNo));
-            float nrOfPages = (float) Pizza.countPizzas() / sizeNo;
+            uiModel.addAttribute("pizzas", pizzaService.findPizzaEntries(firstResult, sizeNo));
+            float nrOfPages = (float) pizzaService.countAllPizzas() / sizeNo;
             uiModel.addAttribute("maxPages", (int) ((nrOfPages > (int) nrOfPages || nrOfPages == 0.0) ? nrOfPages + 1 : nrOfPages));
         } else {
-            uiModel.addAttribute("pizzas", Pizza.findAllPizzas());
+            uiModel.addAttribute("pizzas", pizzaService.findAllPizzas());
         }
         return "pizzas/list";
     }
@@ -66,20 +77,20 @@ privileged aspect PizzaController_Roo_Controller {
             return "pizzas/update";
         }
         uiModel.asMap().clear();
-        pizza.merge();
+        pizzaService.updatePizza(pizza);
         return "redirect:/pizzas/" + encodeUrlPathSegment(pizza.getId().toString(), httpServletRequest);
     }
     
     @RequestMapping(value = "/{id}", params = "form", produces = "text/html")
     public String PizzaController.updateForm(@PathVariable("id") Long id, Model uiModel) {
-        populateEditForm(uiModel, Pizza.findPizza(id));
+        populateEditForm(uiModel, pizzaService.findPizza(id));
         return "pizzas/update";
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE, produces = "text/html")
     public String PizzaController.delete(@PathVariable("id") Long id, @RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "size", required = false) Integer size, Model uiModel) {
-        Pizza pizza = Pizza.findPizza(id);
-        pizza.remove();
+        Pizza pizza = pizzaService.findPizza(id);
+        pizzaService.deletePizza(pizza);
         uiModel.asMap().clear();
         uiModel.addAttribute("page", (page == null) ? "1" : page.toString());
         uiModel.addAttribute("size", (size == null) ? "10" : size.toString());
@@ -88,8 +99,8 @@ privileged aspect PizzaController_Roo_Controller {
     
     void PizzaController.populateEditForm(Model uiModel, Pizza pizza) {
         uiModel.addAttribute("pizza", pizza);
-        uiModel.addAttribute("bases", Base.findAllBases());
-        uiModel.addAttribute("toppings", Topping.findAllToppings());
+        uiModel.addAttribute("bases", baseService.findAllBases());
+        uiModel.addAttribute("toppings", toppingService.findAllToppings());
     }
     
     String PizzaController.encodeUrlPathSegment(String pathSegment, HttpServletRequest httpServletRequest) {

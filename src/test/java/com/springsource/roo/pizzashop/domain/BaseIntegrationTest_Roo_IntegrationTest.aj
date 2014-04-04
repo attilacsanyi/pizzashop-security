@@ -3,9 +3,9 @@
 
 package com.springsource.roo.pizzashop.domain;
 
-import com.springsource.roo.pizzashop.domain.Base;
 import com.springsource.roo.pizzashop.domain.BaseDataOnDemand;
 import com.springsource.roo.pizzashop.domain.BaseIntegrationTest;
+import com.springsource.roo.pizzashop.service.BaseService;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,10 +26,13 @@ privileged aspect BaseIntegrationTest_Roo_IntegrationTest {
     @Autowired
     private BaseDataOnDemand BaseIntegrationTest.dod;
     
+    @Autowired
+    BaseService BaseIntegrationTest.baseService;
+    
     @Test
-    public void BaseIntegrationTest.testCountBases() {
+    public void BaseIntegrationTest.testCountAllBases() {
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", dod.getRandomBase());
-        long count = Base.countBases();
+        long count = baseService.countAllBases();
         Assert.assertTrue("Counter for 'Base' incorrectly reported there were no entries", count > 0);
     }
     
@@ -39,7 +42,7 @@ privileged aspect BaseIntegrationTest_Roo_IntegrationTest {
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Base' failed to provide an identifier", id);
-        obj = Base.findBase(id);
+        obj = baseService.findBase(id);
         Assert.assertNotNull("Find method for 'Base' illegally returned null for id '" + id + "'", obj);
         Assert.assertEquals("Find method for 'Base' returned the incorrect identifier", id, obj.getId());
     }
@@ -47,9 +50,9 @@ privileged aspect BaseIntegrationTest_Roo_IntegrationTest {
     @Test
     public void BaseIntegrationTest.testFindAllBases() {
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", dod.getRandomBase());
-        long count = Base.countBases();
+        long count = baseService.countAllBases();
         Assert.assertTrue("Too expensive to perform a find all test for 'Base', as there are " + count + " entries; set the findAllMaximum to exceed this value or set findAll=false on the integration test annotation to disable the test", count < 250);
-        List<Base> result = Base.findAllBases();
+        List<Base> result = baseService.findAllBases();
         Assert.assertNotNull("Find all method for 'Base' illegally returned null", result);
         Assert.assertTrue("Find all method for 'Base' failed to return any data", result.size() > 0);
     }
@@ -57,11 +60,11 @@ privileged aspect BaseIntegrationTest_Roo_IntegrationTest {
     @Test
     public void BaseIntegrationTest.testFindBaseEntries() {
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", dod.getRandomBase());
-        long count = Base.countBases();
+        long count = baseService.countAllBases();
         if (count > 20) count = 20;
         int firstResult = 0;
         int maxResults = (int) count;
-        List<Base> result = Base.findBaseEntries(firstResult, maxResults);
+        List<Base> result = baseService.findBaseEntries(firstResult, maxResults);
         Assert.assertNotNull("Find entries method for 'Base' illegally returned null", result);
         Assert.assertEquals("Find entries method for 'Base' returned an incorrect number of entries", count, result.size());
     }
@@ -72,7 +75,7 @@ privileged aspect BaseIntegrationTest_Roo_IntegrationTest {
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Base' failed to provide an identifier", id);
-        obj = Base.findBase(id);
+        obj = baseService.findBase(id);
         Assert.assertNotNull("Find method for 'Base' illegally returned null for id '" + id + "'", obj);
         boolean modified =  dod.modifyBase(obj);
         Integer currentVersion = obj.getVersion();
@@ -81,41 +84,41 @@ privileged aspect BaseIntegrationTest_Roo_IntegrationTest {
     }
     
     @Test
-    public void BaseIntegrationTest.testMergeUpdate() {
+    public void BaseIntegrationTest.testUpdateBaseUpdate() {
         Base obj = dod.getRandomBase();
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Base' failed to provide an identifier", id);
-        obj = Base.findBase(id);
+        obj = baseService.findBase(id);
         boolean modified =  dod.modifyBase(obj);
         Integer currentVersion = obj.getVersion();
-        Base merged = obj.merge();
+        Base merged = baseService.updateBase(obj);
         obj.flush();
         Assert.assertEquals("Identifier of merged object not the same as identifier of original object", merged.getId(), id);
         Assert.assertTrue("Version for 'Base' failed to increment on merge and flush directive", (currentVersion != null && obj.getVersion() > currentVersion) || !modified);
     }
     
     @Test
-    public void BaseIntegrationTest.testPersist() {
+    public void BaseIntegrationTest.testSaveBase() {
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", dod.getRandomBase());
         Base obj = dod.getNewTransientBase(Integer.MAX_VALUE);
         Assert.assertNotNull("Data on demand for 'Base' failed to provide a new transient entity", obj);
         Assert.assertNull("Expected 'Base' identifier to be null", obj.getId());
-        obj.persist();
+        baseService.saveBase(obj);
         obj.flush();
         Assert.assertNotNull("Expected 'Base' identifier to no longer be null", obj.getId());
     }
     
     @Test
-    public void BaseIntegrationTest.testRemove() {
+    public void BaseIntegrationTest.testDeleteBase() {
         Base obj = dod.getRandomBase();
         Assert.assertNotNull("Data on demand for 'Base' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Base' failed to provide an identifier", id);
-        obj = Base.findBase(id);
-        obj.remove();
+        obj = baseService.findBase(id);
+        baseService.deleteBase(obj);
         obj.flush();
-        Assert.assertNull("Failed to remove 'Base' with identifier '" + id + "'", Base.findBase(id));
+        Assert.assertNull("Failed to remove 'Base' with identifier '" + id + "'", baseService.findBase(id));
     }
     
 }

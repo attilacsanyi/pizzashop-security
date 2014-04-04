@@ -5,6 +5,7 @@ package com.springsource.roo.pizzashop.domain;
 
 import com.springsource.roo.pizzashop.domain.Topping;
 import com.springsource.roo.pizzashop.domain.ToppingDataOnDemand;
+import com.springsource.roo.pizzashop.service.ToppingService;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Random;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 privileged aspect ToppingDataOnDemand_Roo_DataOnDemand {
@@ -21,6 +23,9 @@ privileged aspect ToppingDataOnDemand_Roo_DataOnDemand {
     private Random ToppingDataOnDemand.rnd = new SecureRandom();
     
     private List<Topping> ToppingDataOnDemand.data;
+    
+    @Autowired
+    ToppingService ToppingDataOnDemand.toppingService;
     
     public Topping ToppingDataOnDemand.getNewTransientTopping(int index) {
         Topping obj = new Topping();
@@ -43,14 +48,14 @@ privileged aspect ToppingDataOnDemand_Roo_DataOnDemand {
         }
         Topping obj = data.get(index);
         Long id = obj.getId();
-        return Topping.findTopping(id);
+        return toppingService.findTopping(id);
     }
     
     public Topping ToppingDataOnDemand.getRandomTopping() {
         init();
         Topping obj = data.get(rnd.nextInt(data.size()));
         Long id = obj.getId();
-        return Topping.findTopping(id);
+        return toppingService.findTopping(id);
     }
     
     public boolean ToppingDataOnDemand.modifyTopping(Topping obj) {
@@ -60,7 +65,7 @@ privileged aspect ToppingDataOnDemand_Roo_DataOnDemand {
     public void ToppingDataOnDemand.init() {
         int from = 0;
         int to = 10;
-        data = Topping.findToppingEntries(from, to);
+        data = toppingService.findToppingEntries(from, to);
         if (data == null) {
             throw new IllegalStateException("Find entries implementation for 'Topping' illegally returned null");
         }
@@ -72,7 +77,7 @@ privileged aspect ToppingDataOnDemand_Roo_DataOnDemand {
         for (int i = 0; i < 10; i++) {
             Topping obj = getNewTransientTopping(i);
             try {
-                obj.persist();
+                toppingService.saveTopping(obj);
             } catch (ConstraintViolationException e) {
                 StringBuilder msg = new StringBuilder();
                 for (Iterator<ConstraintViolation<?>> iter = e.getConstraintViolations().iterator(); iter.hasNext();) {

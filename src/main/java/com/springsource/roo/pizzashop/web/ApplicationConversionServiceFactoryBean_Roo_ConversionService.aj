@@ -7,7 +7,12 @@ import com.springsource.roo.pizzashop.domain.Base;
 import com.springsource.roo.pizzashop.domain.Pizza;
 import com.springsource.roo.pizzashop.domain.PizzaOrder;
 import com.springsource.roo.pizzashop.domain.Topping;
+import com.springsource.roo.pizzashop.service.BaseService;
+import com.springsource.roo.pizzashop.service.PizzaOrderService;
+import com.springsource.roo.pizzashop.service.PizzaService;
+import com.springsource.roo.pizzashop.service.ToppingService;
 import com.springsource.roo.pizzashop.web.ApplicationConversionServiceFactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;
@@ -15,6 +20,18 @@ import org.springframework.format.FormatterRegistry;
 privileged aspect ApplicationConversionServiceFactoryBean_Roo_ConversionService {
     
     declare @type: ApplicationConversionServiceFactoryBean: @Configurable;
+    
+    @Autowired
+    BaseService ApplicationConversionServiceFactoryBean.baseService;
+    
+    @Autowired
+    PizzaService ApplicationConversionServiceFactoryBean.pizzaService;
+    
+    @Autowired
+    PizzaOrderService ApplicationConversionServiceFactoryBean.pizzaOrderService;
+    
+    @Autowired
+    ToppingService ApplicationConversionServiceFactoryBean.toppingService;
     
     public Converter<Base, String> ApplicationConversionServiceFactoryBean.getBaseToStringConverter() {
         return new org.springframework.core.convert.converter.Converter<com.springsource.roo.pizzashop.domain.Base, java.lang.String>() {
@@ -27,7 +44,7 @@ privileged aspect ApplicationConversionServiceFactoryBean_Roo_ConversionService 
     public Converter<Long, Base> ApplicationConversionServiceFactoryBean.getIdToBaseConverter() {
         return new org.springframework.core.convert.converter.Converter<java.lang.Long, com.springsource.roo.pizzashop.domain.Base>() {
             public com.springsource.roo.pizzashop.domain.Base convert(java.lang.Long id) {
-                return Base.findBase(id);
+                return baseService.findBase(id);
             }
         };
     }
@@ -51,7 +68,7 @@ privileged aspect ApplicationConversionServiceFactoryBean_Roo_ConversionService 
     public Converter<Long, Pizza> ApplicationConversionServiceFactoryBean.getIdToPizzaConverter() {
         return new org.springframework.core.convert.converter.Converter<java.lang.Long, com.springsource.roo.pizzashop.domain.Pizza>() {
             public com.springsource.roo.pizzashop.domain.Pizza convert(java.lang.Long id) {
-                return Pizza.findPizza(id);
+                return pizzaService.findPizza(id);
             }
         };
     }
@@ -75,7 +92,7 @@ privileged aspect ApplicationConversionServiceFactoryBean_Roo_ConversionService 
     public Converter<Long, PizzaOrder> ApplicationConversionServiceFactoryBean.getIdToPizzaOrderConverter() {
         return new org.springframework.core.convert.converter.Converter<java.lang.Long, com.springsource.roo.pizzashop.domain.PizzaOrder>() {
             public com.springsource.roo.pizzashop.domain.PizzaOrder convert(java.lang.Long id) {
-                return PizzaOrder.findPizzaOrder(id);
+                return pizzaOrderService.findPizzaOrder(id);
             }
         };
     }
@@ -99,7 +116,7 @@ privileged aspect ApplicationConversionServiceFactoryBean_Roo_ConversionService 
     public Converter<Long, Topping> ApplicationConversionServiceFactoryBean.getIdToToppingConverter() {
         return new org.springframework.core.convert.converter.Converter<java.lang.Long, com.springsource.roo.pizzashop.domain.Topping>() {
             public com.springsource.roo.pizzashop.domain.Topping convert(java.lang.Long id) {
-                return Topping.findTopping(id);
+                return toppingService.findTopping(id);
             }
         };
     }

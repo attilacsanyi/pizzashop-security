@@ -4,10 +4,12 @@
 package com.springsource.roo.pizzashop.web;
 
 import com.springsource.roo.pizzashop.domain.Base;
+import com.springsource.roo.pizzashop.service.BaseService;
 import com.springsource.roo.pizzashop.web.BaseController;
 import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,9 @@ import org.springframework.web.util.WebUtils;
 
 privileged aspect BaseController_Roo_Controller {
     
+    @Autowired
+    BaseService BaseController.baseService;
+    
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     public String BaseController.create(@Valid Base base, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
@@ -26,7 +31,7 @@ privileged aspect BaseController_Roo_Controller {
             return "bases/create";
         }
         uiModel.asMap().clear();
-        base.persist();
+        baseService.saveBase(base);
         return "redirect:/bases/" + encodeUrlPathSegment(base.getId().toString(), httpServletRequest);
     }
     
@@ -38,7 +43,7 @@ privileged aspect BaseController_Roo_Controller {
     
     @RequestMapping(value = "/{id}", produces = "text/html")
     public String BaseController.show(@PathVariable("id") Long id, Model uiModel) {
-        uiModel.addAttribute("base", Base.findBase(id));
+        uiModel.addAttribute("base", baseService.findBase(id));
         uiModel.addAttribute("itemId", id);
         return "bases/show";
     }
@@ -48,11 +53,11 @@ privileged aspect BaseController_Roo_Controller {
         if (page != null || size != null) {
             int sizeNo = size == null ? 10 : size.intValue();
             final int firstResult = page == null ? 0 : (page.intValue() - 1) * sizeNo;
-            uiModel.addAttribute("bases", Base.findBaseEntries(firstResult, sizeNo));
-            float nrOfPages = (float) Base.countBases() / sizeNo;
+            uiModel.addAttribute("bases", baseService.findBaseEntries(firstResult, sizeNo));
+            float nrOfPages = (float) baseService.countAllBases() / sizeNo;
             uiModel.addAttribute("maxPages", (int) ((nrOfPages > (int) nrOfPages || nrOfPages == 0.0) ? nrOfPages + 1 : nrOfPages));
         } else {
-            uiModel.addAttribute("bases", Base.findAllBases());
+            uiModel.addAttribute("bases", baseService.findAllBases());
         }
         return "bases/list";
     }
@@ -64,20 +69,20 @@ privileged aspect BaseController_Roo_Controller {
             return "bases/update";
         }
         uiModel.asMap().clear();
-        base.merge();
+        baseService.updateBase(base);
         return "redirect:/bases/" + encodeUrlPathSegment(base.getId().toString(), httpServletRequest);
     }
     
     @RequestMapping(value = "/{id}", params = "form", produces = "text/html")
     public String BaseController.updateForm(@PathVariable("id") Long id, Model uiModel) {
-        populateEditForm(uiModel, Base.findBase(id));
+        populateEditForm(uiModel, baseService.findBase(id));
         return "bases/update";
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE, produces = "text/html")
     public String BaseController.delete(@PathVariable("id") Long id, @RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "size", required = false) Integer size, Model uiModel) {
-        Base base = Base.findBase(id);
-        base.remove();
+        Base base = baseService.findBase(id);
+        baseService.deleteBase(base);
         uiModel.asMap().clear();
         uiModel.addAttribute("page", (page == null) ? "1" : page.toString());
         uiModel.addAttribute("size", (size == null) ? "10" : size.toString());

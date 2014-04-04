@@ -114,23 +114,28 @@
           </c:if>
           <c:if test="${delete}">
             <td class="utilbox">
-              <spring:url value="${path}/${itemId}" var="delete_form_url" />
-              <spring:url value="/resources/images/delete.png" var="delete_image_url" />
-              <form:form action="${delete_form_url}" method="DELETE">
-                <spring:message arguments="${typeName}" code="entity_delete" var="delete_label" htmlEscape="false" />
-                <c:set var="delete_confirm_msg">
-                  <spring:escapeBody javaScriptEscape="true">
-                    <spring:message code="entity_delete_confirm" />
-                  </spring:escapeBody>
-                </c:set>
-                <input alt="${fn:escapeXml(delete_label)}" class="image" src="${delete_image_url}" title="${fn:escapeXml(delete_label)}" type="image" value="${fn:escapeXml(delete_label)}" onclick="return confirm('${delete_confirm_msg}');" />
-                <c:if test="${not empty param.page}">
-                  <input name="page" type="hidden" value="1" />
-                </c:if>
-                <c:if test="${not empty param.size}">
-                  <input name="size" type="hidden" value="${fn:escapeXml(param.size)}" />
-                </c:if>
-              </form:form>
+            
+              <!-- Use deletable field of domains -->
+              <c:if test="${item.deletable}">
+	              <spring:url value="${path}/${itemId}" var="delete_form_url" />
+	              <spring:url value="/resources/images/delete.png" var="delete_image_url" />
+	              <form:form action="${delete_form_url}" method="DELETE">
+	                <spring:message arguments="${typeName}" code="entity_delete" var="delete_label" htmlEscape="false" />
+	                <c:set var="delete_confirm_msg">
+	                  <spring:escapeBody javaScriptEscape="true">
+	                    <spring:message code="entity_delete_confirm" />
+	                  </spring:escapeBody>
+	                </c:set>
+	                <input alt="${fn:escapeXml(delete_label)}" class="image" src="${delete_image_url}" title="${fn:escapeXml(delete_label)}" type="image" value="${fn:escapeXml(delete_label)}" onclick="return confirm('${delete_confirm_msg}');" />
+	                <c:if test="${not empty param.page}">
+	                  <input name="page" type="hidden" value="1" />
+	                </c:if>
+	                <c:if test="${not empty param.size}">
+	                  <input name="size" type="hidden" value="${fn:escapeXml(param.size)}" />
+	                </c:if>
+	              </form:form>
+              </c:if>
+              
             </td>
           </c:if>
         </tr>

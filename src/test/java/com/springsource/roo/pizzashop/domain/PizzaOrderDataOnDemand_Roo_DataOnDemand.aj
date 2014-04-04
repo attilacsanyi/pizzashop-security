@@ -5,6 +5,7 @@ package com.springsource.roo.pizzashop.domain;
 
 import com.springsource.roo.pizzashop.domain.PizzaOrder;
 import com.springsource.roo.pizzashop.domain.PizzaOrderDataOnDemand;
+import com.springsource.roo.pizzashop.service.PizzaOrderService;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Random;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 privileged aspect PizzaOrderDataOnDemand_Roo_DataOnDemand {
@@ -24,6 +26,9 @@ privileged aspect PizzaOrderDataOnDemand_Roo_DataOnDemand {
     private Random PizzaOrderDataOnDemand.rnd = new SecureRandom();
     
     private List<PizzaOrder> PizzaOrderDataOnDemand.data;
+    
+    @Autowired
+    PizzaOrderService PizzaOrderDataOnDemand.pizzaOrderService;
     
     public PizzaOrder PizzaOrderDataOnDemand.getNewTransientPizzaOrder(int index) {
         PizzaOrder obj = new PizzaOrder();
@@ -67,14 +72,14 @@ privileged aspect PizzaOrderDataOnDemand_Roo_DataOnDemand {
         }
         PizzaOrder obj = data.get(index);
         Long id = obj.getId();
-        return PizzaOrder.findPizzaOrder(id);
+        return pizzaOrderService.findPizzaOrder(id);
     }
     
     public PizzaOrder PizzaOrderDataOnDemand.getRandomPizzaOrder() {
         init();
         PizzaOrder obj = data.get(rnd.nextInt(data.size()));
         Long id = obj.getId();
-        return PizzaOrder.findPizzaOrder(id);
+        return pizzaOrderService.findPizzaOrder(id);
     }
     
     public boolean PizzaOrderDataOnDemand.modifyPizzaOrder(PizzaOrder obj) {
@@ -84,7 +89,7 @@ privileged aspect PizzaOrderDataOnDemand_Roo_DataOnDemand {
     public void PizzaOrderDataOnDemand.init() {
         int from = 0;
         int to = 10;
-        data = PizzaOrder.findPizzaOrderEntries(from, to);
+        data = pizzaOrderService.findPizzaOrderEntries(from, to);
         if (data == null) {
             throw new IllegalStateException("Find entries implementation for 'PizzaOrder' illegally returned null");
         }
@@ -96,7 +101,7 @@ privileged aspect PizzaOrderDataOnDemand_Roo_DataOnDemand {
         for (int i = 0; i < 10; i++) {
             PizzaOrder obj = getNewTransientPizzaOrder(i);
             try {
-                obj.persist();
+                pizzaOrderService.savePizzaOrder(obj);
             } catch (ConstraintViolationException e) {
                 StringBuilder msg = new StringBuilder();
                 for (Iterator<ConstraintViolation<?>> iter = e.getConstraintViolations().iterator(); iter.hasNext();) {

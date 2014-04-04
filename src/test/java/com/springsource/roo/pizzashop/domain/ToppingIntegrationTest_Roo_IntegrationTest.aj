@@ -3,9 +3,9 @@
 
 package com.springsource.roo.pizzashop.domain;
 
-import com.springsource.roo.pizzashop.domain.Topping;
 import com.springsource.roo.pizzashop.domain.ToppingDataOnDemand;
 import com.springsource.roo.pizzashop.domain.ToppingIntegrationTest;
+import com.springsource.roo.pizzashop.service.ToppingService;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,10 +26,13 @@ privileged aspect ToppingIntegrationTest_Roo_IntegrationTest {
     @Autowired
     private ToppingDataOnDemand ToppingIntegrationTest.dod;
     
+    @Autowired
+    ToppingService ToppingIntegrationTest.toppingService;
+    
     @Test
-    public void ToppingIntegrationTest.testCountToppings() {
+    public void ToppingIntegrationTest.testCountAllToppings() {
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", dod.getRandomTopping());
-        long count = Topping.countToppings();
+        long count = toppingService.countAllToppings();
         Assert.assertTrue("Counter for 'Topping' incorrectly reported there were no entries", count > 0);
     }
     
@@ -39,7 +42,7 @@ privileged aspect ToppingIntegrationTest_Roo_IntegrationTest {
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Topping' failed to provide an identifier", id);
-        obj = Topping.findTopping(id);
+        obj = toppingService.findTopping(id);
         Assert.assertNotNull("Find method for 'Topping' illegally returned null for id '" + id + "'", obj);
         Assert.assertEquals("Find method for 'Topping' returned the incorrect identifier", id, obj.getId());
     }
@@ -47,9 +50,9 @@ privileged aspect ToppingIntegrationTest_Roo_IntegrationTest {
     @Test
     public void ToppingIntegrationTest.testFindAllToppings() {
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", dod.getRandomTopping());
-        long count = Topping.countToppings();
+        long count = toppingService.countAllToppings();
         Assert.assertTrue("Too expensive to perform a find all test for 'Topping', as there are " + count + " entries; set the findAllMaximum to exceed this value or set findAll=false on the integration test annotation to disable the test", count < 250);
-        List<Topping> result = Topping.findAllToppings();
+        List<Topping> result = toppingService.findAllToppings();
         Assert.assertNotNull("Find all method for 'Topping' illegally returned null", result);
         Assert.assertTrue("Find all method for 'Topping' failed to return any data", result.size() > 0);
     }
@@ -57,11 +60,11 @@ privileged aspect ToppingIntegrationTest_Roo_IntegrationTest {
     @Test
     public void ToppingIntegrationTest.testFindToppingEntries() {
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", dod.getRandomTopping());
-        long count = Topping.countToppings();
+        long count = toppingService.countAllToppings();
         if (count > 20) count = 20;
         int firstResult = 0;
         int maxResults = (int) count;
-        List<Topping> result = Topping.findToppingEntries(firstResult, maxResults);
+        List<Topping> result = toppingService.findToppingEntries(firstResult, maxResults);
         Assert.assertNotNull("Find entries method for 'Topping' illegally returned null", result);
         Assert.assertEquals("Find entries method for 'Topping' returned an incorrect number of entries", count, result.size());
     }
@@ -72,7 +75,7 @@ privileged aspect ToppingIntegrationTest_Roo_IntegrationTest {
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Topping' failed to provide an identifier", id);
-        obj = Topping.findTopping(id);
+        obj = toppingService.findTopping(id);
         Assert.assertNotNull("Find method for 'Topping' illegally returned null for id '" + id + "'", obj);
         boolean modified =  dod.modifyTopping(obj);
         Integer currentVersion = obj.getVersion();
@@ -81,41 +84,41 @@ privileged aspect ToppingIntegrationTest_Roo_IntegrationTest {
     }
     
     @Test
-    public void ToppingIntegrationTest.testMergeUpdate() {
+    public void ToppingIntegrationTest.testUpdateToppingUpdate() {
         Topping obj = dod.getRandomTopping();
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Topping' failed to provide an identifier", id);
-        obj = Topping.findTopping(id);
+        obj = toppingService.findTopping(id);
         boolean modified =  dod.modifyTopping(obj);
         Integer currentVersion = obj.getVersion();
-        Topping merged = obj.merge();
+        Topping merged = toppingService.updateTopping(obj);
         obj.flush();
         Assert.assertEquals("Identifier of merged object not the same as identifier of original object", merged.getId(), id);
         Assert.assertTrue("Version for 'Topping' failed to increment on merge and flush directive", (currentVersion != null && obj.getVersion() > currentVersion) || !modified);
     }
     
     @Test
-    public void ToppingIntegrationTest.testPersist() {
+    public void ToppingIntegrationTest.testSaveTopping() {
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", dod.getRandomTopping());
         Topping obj = dod.getNewTransientTopping(Integer.MAX_VALUE);
         Assert.assertNotNull("Data on demand for 'Topping' failed to provide a new transient entity", obj);
         Assert.assertNull("Expected 'Topping' identifier to be null", obj.getId());
-        obj.persist();
+        toppingService.saveTopping(obj);
         obj.flush();
         Assert.assertNotNull("Expected 'Topping' identifier to no longer be null", obj.getId());
     }
     
     @Test
-    public void ToppingIntegrationTest.testRemove() {
+    public void ToppingIntegrationTest.testDeleteTopping() {
         Topping obj = dod.getRandomTopping();
         Assert.assertNotNull("Data on demand for 'Topping' failed to initialize correctly", obj);
         Long id = obj.getId();
         Assert.assertNotNull("Data on demand for 'Topping' failed to provide an identifier", id);
-        obj = Topping.findTopping(id);
-        obj.remove();
+        obj = toppingService.findTopping(id);
+        toppingService.deleteTopping(obj);
         obj.flush();
-        Assert.assertNull("Failed to remove 'Topping' with identifier '" + id + "'", Topping.findTopping(id));
+        Assert.assertNull("Failed to remove 'Topping' with identifier '" + id + "'", toppingService.findTopping(id));
     }
     
 }

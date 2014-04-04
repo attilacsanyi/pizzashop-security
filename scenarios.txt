@@ -1,0 +1,45 @@
+---------------------------
+Spring Security 3.0
+---------------------------
+
+BASIC
+
+0. Members
+ - users, guest, admin
+
+1. Show the authenticated user name (index.jspx)
+ - http://static.springsource.org/spring-security/site/docs/3.0.x/reference/taglibs.html 
+ - <sec:authentication property="principal.username" />
+ - <sec:authorize access="hasRole('ROLE_ADMIN')>
+ 
+2. Static resources (security.xml)
+ - all static resources available for everyone (not only members)
+ - http://localhost:8080/pizzashop/resources/images/banner-graphic.png
+
+3. Secret resources (security.xml)
+ - the secret place is available only for users and admin
+ - http://localhost:8080/pizzashop/resources/secret/secret.png
+ 
+4. Authenticated user (BaseServiceImpl.java)
+ - Only the users or admin can see the created by info of each Base, but guest can't
+ 
+5. Interceptor URL's (security.xml)
+ - Guest has not permission to create PizzaOrder only users and admin
+ - http://localhost:8080/pizzashop/pizzaorders?form
+ 
+6. @Secured/@PreAuthorize annotation (PizzaServiceImpl.java)
+ - Guest has not permission to save new Pizza only users and admin
+ 
+ADVANCED
+ 
+7. @PostFilter annotation and filterObject (ToppingServiceImpl.java)
+ - The guest can see only his/her toppings
+ 
+8. @PreAuthorize + SpEL (PizzaOrderServiceImpl.java)
+ - Tim can order max 2 pizza at the same time
+  
+9. Cutom permission evaluator (BaseServiceImpl.java)
+ - User can update only their Pizza Base, not the others
+ 
+10. Deletable (with AspectJ)
+ - Render delete button for only the own toppings

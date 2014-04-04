@@ -3,13 +3,15 @@
 
 package com.springsource.roo.pizzashop.web;
 
-import com.springsource.roo.pizzashop.domain.Pizza;
 import com.springsource.roo.pizzashop.domain.PizzaOrder;
+import com.springsource.roo.pizzashop.service.PizzaOrderService;
+import com.springsource.roo.pizzashop.service.PizzaService;
 import com.springsource.roo.pizzashop.web.PizzaOrderController;
 import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.joda.time.format.DateTimeFormat;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,6 +24,12 @@ import org.springframework.web.util.WebUtils;
 
 privileged aspect PizzaOrderController_Roo_Controller {
     
+    @Autowired
+    PizzaOrderService PizzaOrderController.pizzaOrderService;
+    
+    @Autowired
+    PizzaService PizzaOrderController.pizzaService;
+    
     @RequestMapping(method = RequestMethod.POST, produces = "text/html")
     public String PizzaOrderController.create(@Valid PizzaOrder pizzaOrder, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
@@ -29,7 +37,7 @@ privileged aspect PizzaOrderController_Roo_Controller {
             return "pizzaorders/create";
         }
         uiModel.asMap().clear();
-        pizzaOrder.persist();
+        pizzaOrderService.savePizzaOrder(pizzaOrder);
         return "redirect:/pizzaorders/" + encodeUrlPathSegment(pizzaOrder.getId().toString(), httpServletRequest);
     }
     
@@ -42,7 +50,7 @@ privileged aspect PizzaOrderController_Roo_Controller {
     @RequestMapping(value = "/{id}", produces = "text/html")
     public String PizzaOrderController.show(@PathVariable("id") Long id, Model uiModel) {
         addDateTimeFormatPatterns(uiModel);
-        uiModel.addAttribute("pizzaorder", PizzaOrder.findPizzaOrder(id));
+        uiModel.addAttribute("pizzaorder", pizzaOrderService.findPizzaOrder(id));
         uiModel.addAttribute("itemId", id);
         return "pizzaorders/show";
     }
@@ -52,11 +60,11 @@ privileged aspect PizzaOrderController_Roo_Controller {
         if (page != null || size != null) {
             int sizeNo = size == null ? 10 : size.intValue();
             final int firstResult = page == null ? 0 : (page.intValue() - 1) * sizeNo;
-            uiModel.addAttribute("pizzaorders", PizzaOrder.findPizzaOrderEntries(firstResult, sizeNo));
-            float nrOfPages = (float) PizzaOrder.countPizzaOrders() / sizeNo;
+            uiModel.addAttribute("pizzaorders", pizzaOrderService.findPizzaOrderEntries(firstResult, sizeNo));
+            float nrOfPages = (float) pizzaOrderService.countAllPizzaOrders() / sizeNo;
             uiModel.addAttribute("maxPages", (int) ((nrOfPages > (int) nrOfPages || nrOfPages == 0.0) ? nrOfPages + 1 : nrOfPages));
         } else {
-            uiModel.addAttribute("pizzaorders", PizzaOrder.findAllPizzaOrders());
+            uiModel.addAttribute("pizzaorders", pizzaOrderService.findAllPizzaOrders());
         }
         addDateTimeFormatPatterns(uiModel);
         return "pizzaorders/list";
@@ -69,20 +77,20 @@ privileged aspect PizzaOrderController_Roo_Controller {
             return "pizzaorders/update";
         }
         uiModel.asMap().clear();
-        pizzaOrder.merge();
+        pizzaOrderService.updatePizzaOrder(pizzaOrder);
         return "redirect:/pizzaorders/" + encodeUrlPathSegment(pizzaOrder.getId().toString(), httpServletRequest);
     }
     
     @RequestMapping(value = "/{id}", params = "form", produces = "text/html")
     public String PizzaOrderController.updateForm(@PathVariable("id") Long id, Model uiModel) {
-        populateEditForm(uiModel, PizzaOrder.findPizzaOrder(id));
+        populateEditForm(uiModel, pizzaOrderService.findPizzaOrder(id));
         return "pizzaorders/update";
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE, produces = "text/html")
     public String PizzaOrderController.delete(@PathVariable("id") Long id, @RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "size", required = false) Integer size, Model uiModel) {
-        PizzaOrder pizzaOrder = PizzaOrder.findPizzaOrder(id);
-        pizzaOrder.remove();
+        PizzaOrder pizzaOrder = pizzaOrderService.findPizzaOrder(id);
+        pizzaOrderService.deletePizzaOrder(pizzaOrder);
         uiModel.asMap().clear();
         uiModel.addAttribute("page", (page == null) ? "1" : page.toString());
         uiModel.addAttribute("size", (size == null) ? "10" : size.toString());
@@ -96,7 +104,7 @@ privileged aspect PizzaOrderController_Roo_Controller {
     void PizzaOrderController.populateEditForm(Model uiModel, PizzaOrder pizzaOrder) {
         uiModel.addAttribute("pizzaOrder", pizzaOrder);
         addDateTimeFormatPatterns(uiModel);
-        uiModel.addAttribute("pizzas", Pizza.findAllPizzas());
+        uiModel.addAttribute("pizzas", pizzaService.findAllPizzas());
     }
     
     String PizzaOrderController.encodeUrlPathSegment(String pathSegment, HttpServletRequest httpServletRequest) {
